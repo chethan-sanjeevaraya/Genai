@@ -9,21 +9,18 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFDirectoryLoader
-import openai
+from langchain_openai import OpenAI
 
 from dotenv import load_dotenv
 load_dotenv()
 ## load the GROQ API Key
 os.environ['OPENAI_API_KEY']=os.getenv("OPENAI_API_KEY")
 os.environ['GROQ_API_KEY']=os.getenv("GROQ_API_KEY")
+
 groq_api_key=os.getenv("GROQ_API_KEY")
 
-## If you do not have open AI key use the below Huggingface embedding
-os.environ['HF_TOKEN']=os.getenv("HF_TOKEN")
-from langchain_huggingface import HuggingFaceEmbeddings
-embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-llm=ChatGroq(groq_api_key=groq_api_key,model_name="Llama3-8b-8192")
+# llm=ChatGroq(groq_api_key=groq_api_key,model_name="Llama3-8b-8192")
+llm = OpenAI(temperature=0.4, max_tokens=150)
 
 prompt=ChatPromptTemplate.from_template(
     """
@@ -40,8 +37,8 @@ prompt=ChatPromptTemplate.from_template(
 
 def create_vector_embedding():
     if "vectors" not in st.session_state:
-        # st.session_state.embeddings=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-        st.session_state.loader=PyPDFDirectoryLoader("research_papers") ## Data Ingestion step
+        st.session_state.embeddings=OpenAIEmbeddings()
+        st.session_state.loader=PyPDFDirectoryLoader("data") ## Data Ingestion step
         st.session_state.docs=st.session_state.loader.load() ## Document Loading
         st.session_state.text_splitter=RecursiveCharacterTextSplitter(chunk_size=100,chunk_overlap=20)
         st.session_state.final_documents=st.session_state.text_splitter.split_documents(st.session_state.docs[:5])
